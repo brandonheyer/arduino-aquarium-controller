@@ -2,7 +2,7 @@
 #define LCDMENUDISPLAY_H
 
 #include <LiquidCrystal.h>
-#include "menu.h"
+#include "library/menu.h"
 
 class LCDMenuDisplay {
   public:
@@ -13,6 +13,7 @@ class LCDMenuDisplay {
     void clear();
     void draw();
     void redraw();
+    void tick(int delta);
 
     bool handleRemote(unsigned long value);
 
@@ -20,6 +21,7 @@ class LCDMenuDisplay {
     bool leaveMenu();
     bool navigateUp();
     bool navigateDown();
+    bool siblingMenu();
 
     LiquidCrystal* getLiquidCrystal();
 
@@ -29,6 +31,8 @@ class LCDMenuDisplay {
     Menu* activeMenu;
     LiquidCrystal* lcd;
     Menu* menu;
+
+    int timeout;
 };
 
 #endif

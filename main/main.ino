@@ -1,22 +1,37 @@
 #include <Wire.h>
-#include <DS3231.h>
+#include <DS3232RTC.h>
 #include <LiquidCrystal.h>
 
 #include "IRremote.h"
 #include "menu.h"
+#include "ClockMenu.h"
 #include "LedControlMenu.h"
-#include "LedController.h"
+#include "RGBLedControlMenu.h"
 #include "LCDMenuDisplay.h"
-#include "Adafruit_PWMServoDriver.h"
+
+#include "menuDefs/ClockMenuDef.h"
+#include "menuDefs/LEDMenuDef.h"
+
+#define BUFF_MAX 128
 
 const int NUM_LED = 1;
 const int PIN_RECEIVER = 2;
+const int IR_REPEAT_TIMEOUT = 500;
+const int CLOCK_TIMEOUT = 1000;
 
 int brightness = 0;
+
 bool direction = true;
 
+long last = 0;
+long repeatIR = 0;
+unsigned long lastIR = 0;
+
+long clockUpdate = 0;
+
+int lastDig = HIGH;
+
 LedController* lc;
-DS3231 clock;
 
 Menu mainMenu = Menu("main");
 
@@ -25,35 +40,14 @@ LCDMenuDisplay* lcd;
 IRrecv irrecv(PIN_RECEIVER);
 decode_results results;
 
-Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
-
 void setupMenu() {
   Menu *menuSetup;
   Menu *subMenu;
 
   lcd = new LCDMenuDisplay(&mainMenu);
 
-  menuSetup = new Menu("LED Controls");
-  mainMenu.addItem(menuSetup);
-
-  subMenu = new Menu("White 1");
-  subMenu->addItem(new LedControlMenu(lcd->getLiquidCrystal(), "White 1"));
-  menuSetup->addItem(subMenu);
-
-  subMenu = new Menu("White 2");
-  menuSetup->addItem(subMenu);
-
-  subMenu = new Menu("White 3");
-  menuSetup->addItem(subMenu);
-
-  subMenu = new Menu("White 4");
-  menuSetup->addItem(subMenu);
-
-  subMenu = new Menu("Grow 1");
-  menuSetup->addItem(subMenu);
-
-  subMenu = new Menu("Grow 2");
-  menuSetup->addItem(subMenu);
+  ClockMenuDef::add(&mainMenu, lcd);
+  LEDMenuDef::add(&mainMenu, lcd);
 
   menuSetup = new Menu("Feeder Status");
   mainMenu.addItem(menuSetup);
@@ -61,8 +55,40 @@ void setupMenu() {
   lcd->draw();
 }
 
+void digitalClockDisplay()
+{
+  // digital clock display of the time
+  Serial.print(hour());
+  printDigits(minute());
+  printDigits(second());
+  Serial.print(' ');
+  Serial.print(day());
+  Serial.print(' ');
+  Serial.print(month());
+  Serial.print(' ');
+  Serial.print(year());
+  Serial.println();
+}
+
+void printDigits(int digits)
+{
+  // utility function for digital clock display: prints preceding colon and leading 0
+  Serial.print(':');
+
+  if(digits < 10) {
+    Serial.print('0');
+  }
+
+  Serial.print(digits);
+}
+
 void setupClock() {
-  Serial.print(clock.getSecond(), DEC);
+  setSyncProvider(RTC.get);   // the function to get the time from the RTC
+  if(timeStatus() != timeSet) {
+    Serial.println("Unable to sync with the RTC");
+  } else {
+    Serial.println("RTC has set the system time");
+  }
 }
 
 void setupIR() {
@@ -76,22 +102,48 @@ void setupPWM() {
 
 void setup() {
   Serial.begin(9600);
+  pinMode(53, OUTPUT);
+  digitalWrite(53, HIGH);
 
   Wire.begin();
 
-  setupIR();
   setupClock();
+  setupIR();
   setupMenu();
   setupPWM();
-
-  lc = new LedController(0, &pwm);
 }
 
 void loop() {
   bool redraw = false;
+  long curr = millis();
+  int digRead;
+
+  lcd->tick(curr - last);
+
+  repeatIR = repeatIR + (curr - last);
+  clockUpdate = clockUpdate + (curr - last);
+
+  last = curr;
 
   if (irrecv.decode(&results)) {
-    redraw = lcd->handleRemote(results.value);
+    Serial.print("Code: ");
+    Serial.print(results.value);
+    Serial.print("\t Buffer Length: ");
+    Serial.print(results.rawlen);
+    Serial.print("\t Repeat: ");
+    Serial.print(repeatIR);
+    Serial.println();
+
+    if (results.value == 0xFFFFFFFF) {
+      if (repeatIR > IR_REPEAT_TIMEOUT) {
+        redraw = lcd->handleRemote(lastIR);
+      }
+    } else {
+      redraw = lcd->handleRemote(results.value);
+      lastIR = results.value;
+      repeatIR = 0;
+    }
+
     irrecv.resume();
   }
 
@@ -99,11 +151,15 @@ void loop() {
     lcd->redraw();
   }
 
-  lc->demo();
+  if (clockUpdate > 5000) {
+    // if (lastDig == LOW) {
+    //   lastDig = HIGH;
+    // } else {
+    //   lastDig = LOW;
+    // }
+    //
+    // digitalWrite(53, lastDig);
 
-  // Serial.print("Minute: ");
-  Serial.print(clock.getMinute(), DEC);
-
-  Serial.print(":");
-  Serial.println(clock.getSecond(), DEC);
+    clockUpdate = 0;
+  }
 }

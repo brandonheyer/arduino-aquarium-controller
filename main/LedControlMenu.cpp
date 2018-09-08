@@ -1,11 +1,24 @@
 #include <Arduino.h>
 #include <LiquidCrystal.h>
-#include "menu.h"
-#include "LedControlMenu.h"
 
-LedControlMenu::LedControlMenu(LiquidCrystal* lcd, String l = "") : Menu(l, false) {
+#include "library/Adafruit_PWMServoDriver.h"
+#include "library/menu.h"
+
+#include "LedControlMenu.h"
+#include "LedController.h"
+
+LedControlMenu::LedControlMenu(
+  LiquidCrystal* lcd,
+  Adafruit_PWMServoDriver* pwm,
+  int pin,
+  String l = ""
+) : Menu(l, false) {
   display = lcd;
-  brightness = 120;
+
+  if (pin != -1) {
+    lc = new LedController(pin, pwm);
+    brightness = lc->getBrightness();
+  }
 }
 
 void LedControlMenu::progress(int percent, char* bar) {
@@ -29,7 +42,7 @@ void LedControlMenu::progress(int percent, char* bar) {
 void LedControlMenu::drawIntensity() {
   char bar[11];
 
-  progress(((255 - brightness) * 100) / 255, bar);
+  progress((brightness * 100) / 255, bar);
 
   display->setCursor(0, 1);
   display->print(bar);
@@ -45,16 +58,20 @@ void LedControlMenu::draw() {
   drawIntensity();
 }
 
+void LedControlMenu::tick(int delta) {
+  lc->tick(delta);
+}
+
 bool LedControlMenu::handleRemote(unsigned long value) {
   switch(value) {
-    case 0xFF906F:
-      if (brightness > 25) {
+    case 0xFFE01F:
+      if (brightness > 0) {
         brightness -= 10;
       }
       break;
 
-    case 0xFFE01F:
-      if (brightness < 255) {
+    case 0xFF906F:
+      if (brightness < 256) {
         brightness += 10;
       }
       break;
@@ -69,7 +86,7 @@ bool LedControlMenu::handleRemote(unsigned long value) {
     brightness = 0;
   }
 
-  analogWrite(3, brightness);
+  lc->fade(brightness);
 
   return true;
 }

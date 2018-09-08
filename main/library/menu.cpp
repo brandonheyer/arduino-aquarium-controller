@@ -6,12 +6,14 @@ Menu::Menu(String l) {
   label = l;
   numItems = 0;
   isMenu = true;
+  currMenuItem = 0;
 }
 
 Menu::Menu(String l, bool isM) {
   label = l;
   numItems = 0;
   isMenu = isM;
+  currMenuItem = 0;
 }
 
 void Menu::addItem(Menu *item) {
@@ -32,6 +34,10 @@ void Menu::draw() {
 
 }
 
-bool Menu::handleRemote(unsigned long  value) {
+void Menu::tick(int delta) {
+
+}
+
+bool Menu::handleRemote(unsigned long value) {
   return false;
 }
