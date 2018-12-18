@@ -3,12 +3,16 @@
 
 #include <Arduino.h>
 #include "library/Adafruit_PWMServoDriver.h"
+#include "library/Toggle.h"
 
-class LedController {
+class LedController : public Toggle {
   public:
     LedController(int p, Adafruit_PWMServoDriver* pwm);
     void demo();
-    void off();
+
+    virtual void off();
+    virtual void on();
+
     void tick(int delta);
 
     int getBrightness();

@@ -1,24 +1,23 @@
-#include <Arduino.h>
 #include <LiquidCrystal.h>
-#include <DS3232RTC.h>
 
-#include "library/menu.h"
-#include "ClockMenu.h"
-#include "library/Clock.h"
+#include "../menu.h"
+#include "../Clock.h"
 
-ClockMenu::ClockMenu(
+#include "ClockScreen.h"
+
+ClockScreen::ClockScreen(
   LiquidCrystal* lcd,
   String l = ""
 ) : Menu(l, false) {
   display = lcd;
 }
 
-void ClockMenu::draw() {
+void ClockScreen::draw() {
   Clock::drawDate(0, 0, display);
   Clock::drawTime(0, 1, display);
 }
 
-void ClockMenu::tick(int delta) {
+void ClockScreen::tick(int delta) {
   lastUpdate += delta;
 
   if (lastUpdate > 250) {
@@ -27,6 +26,6 @@ void ClockMenu::tick(int delta) {
   }
 }
 
-bool ClockMenu::handleRemote(unsigned long value) {
+bool ClockScreen::handleRemote(unsigned long value) {
   return false;
 }

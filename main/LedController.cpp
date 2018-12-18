@@ -13,7 +13,7 @@ LedController::LedController(int p, Adafruit_PWMServoDriver* pwm) {
   driver = pwm;
   target = -1;
 
-  setBrightness(EEPROM.read(pin));
+  on();
 
   last = millis();
 }
@@ -124,4 +124,8 @@ void LedController::tick(int delta) {
 
 void LedController::off() {
   setBrightness(0);
+}
+
+void LedController::on() {
+  setBrightness(EEPROM.read(pin));
 }

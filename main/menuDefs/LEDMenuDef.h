@@ -5,6 +5,7 @@
 
 #include "../library/menu.h"
 #include "../LCDMenuDisplay.h"
+#include "../LedControlMenu.h"
 
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 
@@ -17,16 +18,16 @@ class LEDMenuDef {
       menuSetup = new Menu("LED Controls");
       menu->addItem(menuSetup);
 
-      subMenu = new Menu("RGB 1");
-      subMenu->addItem(
-        new RGBLedControlMenu(
-          lcd->getLiquidCrystal(),
-          &pwm,
-          3, 2, 1,
-          "RGB 1"
-        )
-      );
-      menuSetup->addItem(subMenu);
+      // subMenu = new Menu("RGB 1");
+      // subMenu->addItem(
+      //   new RGBLedControlMenu(
+      //     lcd->getLiquidCrystal(),
+      //     &pwm,
+      //     3, 2, 1,
+      //     "RGB 1"
+      //   )
+      // );
+      // menuSetup->addItem(subMenu);
 
       subMenu = new Menu("White 1");
       subMenu->addItem(

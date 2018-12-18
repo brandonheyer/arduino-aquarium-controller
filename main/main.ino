@@ -4,10 +4,8 @@
 
 #include "IRremote.h"
 #include "menu.h"
-#include "ClockMenu.h"
-#include "LedControlMenu.h"
-#include "RGBLedControlMenu.h"
 #include "LCDMenuDisplay.h"
+#include "LedController.h"
 
 #include "menuDefs/ClockMenuDef.h"
 #include "menuDefs/LEDMenuDef.h"

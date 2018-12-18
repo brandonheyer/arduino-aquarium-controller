@@ -1,14 +1,14 @@
-#ifndef CLOCKMENU_H
-#define CLOCKMENU_H
+#ifndef CLOCK_SCREEN_H
+#define CLOCK_SCREEN_H
 
 #include <Arduino.h>
 #include <LiquidCrystal.h>
 
-#include "library/menu.h"
+#include "../library/menu.h"
 
-class ClockMenu : public Menu {
+class ClockScreen : public Menu {
   public:
-    ClockMenu(
+    ClockScreen(
       LiquidCrystal* lcd,
       String l
     );

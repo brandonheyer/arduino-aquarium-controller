@@ -4,6 +4,8 @@
 #include "../library/menu.h"
 #include "../LCDMenuDisplay.h"
 
+#include "../library/screens/ClockScreen.h"
+
 class ClockMenuDef {
   public:
     static void add(Menu* menu, LCDMenuDisplay* lcd) {
@@ -13,7 +15,7 @@ class ClockMenuDef {
       menu->addItem(menuSetup);
 
       menuSetup->addItem(
-        new ClockMenu(
+        new ClockScreen(
           lcd->getLiquidCrystal(),
           "Clock"
         )
